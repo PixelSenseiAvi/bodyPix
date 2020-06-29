@@ -4,9 +4,9 @@
   "description": "This is an implmentation of the Tensorflow.js module BodyPix. It is an Open Source Machine Learning module for person and body segmentation within the browser. This specific implmentation allows person segmentation.",
   "main": "index.js",
   "dependencies": {
-    "@tensorflow-models/body-pix": "1.0.0",
-    "@tensorflow/tfjs": "1.0.0",
-    "core-js": "2"
+    "@tensorflow-models/body-pix": "2.0",
+    "@tensorflow/tfjs": "2.0.1",
+    "core-js": "3.6.5"
   },
   "devDependencies": {
     "babel-core": "~6.26.3",
