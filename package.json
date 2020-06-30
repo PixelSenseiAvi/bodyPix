@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "@tensorflow-models/body-pix": "2.0",
+    "@tensorflow-models/posenet": "^2.2.1",
     "@tensorflow/tfjs": "2.0.1",
     "core-js": "3.6.5"
   },

@@ -1,10 +1,12 @@
 import * as bodyPix from "@tensorflow-models/body-pix";
+import * as posenet from '@tensorflow-models/posenet';
 import * as partColorScales from "./color-scales";
 
 const state = {
   video: null,
   stream: null,
   net: null,
+  pnet:null,
   videoConstraints: {},
   changingCamera: false,
   changingArchitecture: false,
@@ -159,8 +161,10 @@ function segmentBodyInRealTime() {
     const outputStride = +guiState.input.outputStride;
     const flipHorizontal = guiState.flipHorizontal;
 
+    const imageElement = document.getElementById('image');
     const personSegmentation = await state.net.estimatePersonSegmentation(
-      state.video,
+      //state.video,
+      imageElement,
       outputStride,
       guiState.segmentation.segmentationThreshold
     );
@@ -170,7 +174,8 @@ function segmentBodyInRealTime() {
     );
     bodyPix.drawMask(
       canvas,
-      state.video,
+      //state.video,
+      imageElement,
       mask,
       guiState.segmentation.opacity,
       guiState.segmentation.maskBlurAmount,
@@ -182,8 +187,37 @@ function segmentBodyInRealTime() {
   bodySegmentationFrame();
 }
 
+
+function poseEstimationInRealTime(){
+    const canvas1 = document.getElementById("output1");
+
+    // async function poseEstimationFrame(){
+
+    //     const pose = await state.pnet.estimateSinglePose(state.video, {
+    //         flipHorizontal: false
+    //       });
+
+    //     return pose
+    // }
+    // poseEstimationFrame();
+
+    async function estimatePoseOnImage(imageElement) {
+              
+        const pose = await state.pnet.estimateSinglePose(imageElement, {
+          flipHorizontal: false
+        });
+        return pose;
+      }
+      
+      const imageElement = document.getElementById('image');
+      
+      const pose = estimatePoseOnImage(imageElement);
+      
+      console.log(pose);
+}
+
 function partEstimationInRealTime() {
-  const canvas = document.getElementById("output");
+  const canvas = document.getElementById("myCanvas");
 
   async function partSegmentationFrame() {
     if (state.changingArchitecture || state.changingCamera) {
@@ -191,25 +225,36 @@ function partEstimationInRealTime() {
       return;
     }
 
-    // const img = document.getElementById("image");
-
-    // const net = await bodyPix.load();
-    // const partSegmentation = await net.segmentMultiPersonParts(img);
     console.log(state.net);
-    debugger;
-    const partSegmentation = await state.net.segmentMultiPersonParts(
-      state.video,
-      {
+   
+    const imageElement = document.getElementById('image');
+
+   
+    // const partSegmentation = await state.net.segmentMultiPersonParts(
+    //   //state.video,
+    //   imageElement,
+    //   {
+    //     flipHorizontal: false,
+    //     internalResolution: "medium",
+    //     segmentationThreshold: 0.7,
+    //     maxDetections: 10,
+    //     scoreThreshold: 0.2,
+    //     nmsRadius: 20,
+    //     minKeypointScore: 0.3,
+    //     refineSteps: 10,
+    //   }
+    // );
+
+    const partSegmentation = await state.net.segmentMultiPersonParts(imageElement, {
         flipHorizontal: false,
-        internalResolution: "medium",
+        internalResolution: 'medium',
         segmentationThreshold: 0.7,
         maxDetections: 10,
         scoreThreshold: 0.2,
         nmsRadius: 20,
         minKeypointScore: 0.3,
-        refineSteps: 10,
-      }
-    );
+        refineSteps: 10
+      });
 
     const rainbow = [
       [110, 64, 170],
@@ -246,12 +291,81 @@ function partEstimationInRealTime() {
     const opacity = 0.7;
 
     // draw the colored part image on top of the original image onto a canvas.  The colored part image will be drawn semi-transparent, with an opacity of 0.7, allowing for the original image to be visible under.
-    bodyPix.drawMask(canvas, state.video, coloredPartImage, opacity);
+    bodyPix.drawMask(canvas, 
+        //state.video, 
+        imageElement,
+        coloredPartImage, opacity);
 
     requestAnimationFrame(partSegmentationFrame);
   }
   partSegmentationFrame();
 }
+
+function livepartEstimationInRealTime() {
+    const canvas2 = document.getElementById("poseCanvas");
+  
+    async function partSegmentationFrame() {
+      if (state.changingArchitecture || state.changingCamera) {
+        setTimeout(partSegmentationFrame, 1000);
+        return;
+      }
+  
+      console.log(state.net);
+      const partSegmentation = await state.net.segmentMultiPersonParts(
+        state.video,
+        {
+          flipHorizontal: false,
+          internalResolution: "medium",
+          segmentationThreshold: 0.7,
+          maxDetections: 10,
+          scoreThreshold: 0.2,
+          nmsRadius: 20,
+          minKeypointScore: 0.3,
+          refineSteps: 10,
+        }
+      );
+  
+      const rainbow = [
+        [110, 64, 170],
+        [106, 72, 183],
+        [100, 81, 196],
+        [92, 91, 206],
+        [84, 101, 214],
+        [75, 113, 221],
+        [66, 125, 224],
+        [56, 138, 226],
+        [48, 150, 224],
+        [40, 163, 220],
+        [33, 176, 214],
+        [29, 188, 205],
+        [26, 199, 194],
+        [26, 210, 182],
+        [28, 219, 169],
+        [33, 227, 155],
+        [41, 234, 141],
+        [51, 240, 128],
+        [64, 243, 116],
+        [79, 246, 105],
+        [96, 247, 97],
+        [115, 246, 91],
+        [134, 245, 88],
+        [155, 243, 88],
+      ];
+  
+      // the colored part image is an rgb image with a corresponding color from the rainbow colors for each part at each pixel.
+      const coloredPartImage = bodyPix.toColoredPartMask(
+        partSegmentation,
+        rainbow
+      );
+      const opacity = 0.7;
+  
+      // draw the colored part image on top of the original image onto a canvas.  The colored part image will be drawn semi-transparent, with an opacity of 0.7, allowing for the original image to be visible under.
+      bodyPix.drawMask(canvas2, state.video, coloredPartImage, opacity);
+  
+      requestAnimationFrame(partSegmentationFrame);
+    }
+    partSegmentationFrame();
+  }
 
 export async function bindPage() {
   state.net = await bodyPix.load({
@@ -259,13 +373,24 @@ export async function bindPage() {
     outputStride: 32,
     quantBytes: 2,
   });
+
+  state.pnet = await posenet.load({
+    architecture: 'ResNet50',
+    outputStride: 32,
+    inputResolution: { width: 257, height: 200 },
+    quantBytes: 2
+  });
+
   document.getElementById("loading").style.display = "none";
   document.getElementById("main").style.display = "inline-block";
 
   await loadVideo();
 
   //   segmentBodyInRealTime();
-  partEstimationInRealTime();
+  partEstimationInRealTime(); //Images
+ // livepartEstimationInRealTime(); //webcam
+  //poseEstimationInRealTime();
+  
 }
 
 navigator.getUserMedia =
