@@ -8,3 +8,6 @@ Person segmentation segments an image into pixels that are and aren't part of a 
 1. Install the dependencies using `npm install`
 2. To watch a live demo of the application use `npm run watch` (allow camera permissions within the browser)
 3. To build the project as a whole in production mode use `npm run build`
+
+# Sample on still image
+![Sample Test](https://github.com/rockchik/bodyPix/blob/master/Capture%20(1).PNG)
