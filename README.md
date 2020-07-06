@@ -1,3 +1,5 @@
+This implementation is borrowed from https://github.com/yashovardhan/bodypix-implementation
+
 # BodyPix Implementation
 
 This is an implmentation of the Tensorflow.js module BodyPix. It is an Open Source Machine Learning module for person and body segmentation within the browser. This specific implmentation allows person segmentation.
